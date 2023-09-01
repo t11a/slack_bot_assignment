@@ -15,3 +15,6 @@ class TestVerifyRequest(unittest.TestCase):
         self.assertFalse(verify_request(invalid_event, SLACK_SIGNING_SECRET))
         #with self.assertRaises(ValueError):
         #    verify_request(invalid_event)
+
+if __name__ == '__main__':
+    unittest.main()

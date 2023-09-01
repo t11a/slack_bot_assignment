@@ -48,3 +48,6 @@ class TestExtractData(unittest.TestCase):
         count, message = extract_data(text)
         self.assertEqual(count, 1)
         self.assertEqual(message, "ありがとう。")
+
+if __name__ == '__main__':
+    unittest.main()

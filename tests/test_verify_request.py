@@ -13,3 +13,5 @@ class TestVerifyRequest(unittest.TestCase):
 
     def test_invalid_request(self):
         self.assertFalse(verify_request(invalid_event))
+        #with self.assertRaises(ValueError):
+        #    verify_request(invalid_event)

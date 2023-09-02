@@ -16,10 +16,12 @@ logger.setLevel(logging.INFO)
 
 dynamodb = boto3.client('dynamodb')
 
+SLACK_TOKEN = os.environ['SLACK_TOKEN']
+SLACK_SIGNING_SECRET = os.environ['SLACK_SIGNING_SECRET']
+
 def lambda_handler(event, context):
     
-    slack_signing_secret = os.environ['SLACK_SIGNING_SECRET']
-    if not verify_request(event, slack_signing_secret):
+    if not verify_request(event, SLACK_SIGNING_SECRET):
         logger.error("Verify Request Error")
         return
 
@@ -38,13 +40,12 @@ def lambda_handler(event, context):
         # ex)  response: {'alice': 16, 'bob': 31}
         new_user_count_map = save_data_to_dynamodb(from_username, user_map, text)
 
-        slack_token = os.environ['SLACK_TOKEN']
         channel_id = body['event']['channel']
         text = ""
         for username, count in new_user_count_map.items():
             text += f"{username}: {count}\n"
 
-        res = post_message(slack_token, channel_id, text)
+        res = post_message(channel_id, text)
         return {
             'statusCode': 200,
             'ok' : res.get('ok')
@@ -150,9 +151,9 @@ def save_data_to_dynamodb(from_username, user_map, msg):
 
     return new_user_count_map
 
-def post_message(slack_token, channel_id, text, username="++Bot"):
+def post_message(channel_id, text, username="++Bot"):
     # Create a Slack client with your token
-    client = WebClient(token=slack_token)
+    client = WebClient(token=SLACK_TOKEN)
 
     try:
         # Call the chat.postMessage method using the WebClient
@@ -167,6 +168,34 @@ def post_message(slack_token, channel_id, text, username="++Bot"):
     except SlackApiError as e:
         logger.error(f"Error posting message: {e}")
         return e.response
+
+def get_slack_username(user):
+    """
+    https://api.slack.com/methods/users.info
+    Args:
+        user (str): slack user id
+
+    Returns:
+        str: display name of slack user
+    """
+    client = WebClient(token=SLACK_TOKEN)
+
+    try:
+        response = client.users_info(user)
+
+        if response["ok"]:
+            # display_name
+            display_name = response['user']['profile']['display_name']
+            # real_name
+            real_name = response['user']['profile']['real_name']
+            logger.info(f"display name:{display_name}, real name:{real_name}")
+            return display_name
+        else:
+            logger.error(f"users_info response: {response}")
+            return ""
+    except SlackApiError as e:
+        logger.error(f"Error fetching user info: {e.response['error']}")
+        return ""
 
 def is_reaction_message(text):
     pattern = r'(\w+\+\+ *)+\s*.*'

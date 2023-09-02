@@ -18,7 +18,7 @@ class TestPostMessageMock(unittest.TestCase):
         mock_client.chat_postMessage.return_value = mock_response
         MockWebClient.return_value = mock_client
 
-        response = post_message('test_token', 'test_channel', 'test_text')
+        response = post_message('test_channel', 'test_text')
         
         self.assertEqual(response, mock_response)
         mock_client.chat_postMessage.assert_called_once()
@@ -34,7 +34,7 @@ class TestPostMessageMock(unittest.TestCase):
         )
         MockWebClient.return_value = mock_client
 
-        response = post_message('test_token', 'test_channel', 'test_text')
+        response = post_message('test_channel', 'test_text')
 
         self.assertEqual(response, mock_error_response)
         mock_client.chat_postMessage.assert_called_once()

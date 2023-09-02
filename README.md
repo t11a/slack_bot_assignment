@@ -27,7 +27,7 @@ zip -r layer-slack.zip python
 ```
 
 # How to Test
-You can execute the test code using pytest. By running the `pytest` command without arguments, it will execute all test codes under the `tests/` directory.
+You can execute the test code using `pytest`. By running the `pytest` command without arguments, it will execute all test codes under the `tests/` directory.
 
 ```
 cd $PROJECT_ROOT

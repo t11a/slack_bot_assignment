@@ -5,65 +5,44 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import unittest
 from unittest.mock import patch
-from botocore.exceptions import ClientError
 from lambda_function.handler import put_item_to_messages
 
 class TestPutItemToMessages(unittest.TestCase):
 
-    @patch("lambda_function.handler.dynamodb.put_item")
-    @patch("lambda_function.handler.time.time", return_value=1693658446)
-    def test_put_item_to_messages(self, mock_time, mock_put_item):
+    @patch('lambda_function.handler.dynamodb')
+    def test_put_item_to_messages_success(self, mock_dynamodb):
         # Setup
-        from_username = "alice"
-        to_username = "bob"
-        msg = "bob++ Thanks!"
-        count = 1
-
-        # Mock response
-        mock_response = {
-            "ResponseMetadata": {
-                "HTTPStatusCode": 200
-            }
+        mock_dynamodb.put_item.return_value = {
+            'ResponseMetadata': {'HTTPStatusCode': 200}
         }
-        mock_put_item.return_value = mock_response
+
+        from_username = "johndoe"
+        user_map = {'alice': 2, 'bob': 1}
+        msg = "alice++ alice++ bob++ Thank you!"
 
         # Call the function
-        response = put_item_to_messages(from_username, to_username, msg, count)
+        response = put_item_to_messages(from_username, user_map, msg)
 
-        # Assert that the function makes the correct DynamoDB call
-        mock_put_item.assert_called_once_with(
-            TableName='Messages',
-            Item={
-                'username': {'S': from_username},
-                'timestamp': {'N': str(1693658446)},
-                'to_username': {'S': to_username},
-                'message': {'S': msg},
-                'incr_num': {'N': str(count)}
-            }
-        )
+        # Assert
+        self.assertTrue(response['ok'])
+        self.assertEqual(mock_dynamodb.put_item.call_count, 2)
 
-        # Assert that the function returns the correct response
-        self.assertEqual(response, mock_response)
-
-    @patch("lambda_function.handler.dynamodb")
-    def test_put_item_error(self, mock_dynamodb):
+    @patch('lambda_function.handler.dynamodb')
+    def test_put_item_to_messages_failure(self, mock_dynamodb):
         # Setup
-        from_username = "alice"
-        to_username = "bob"
-        msg = "bob++ Thanks!"
-        count = 1
+        mock_dynamodb.put_item.return_value = {
+            'ResponseMetadata': {'HTTPStatusCode': 400}
+        }
 
-        # Mock the DynamoDB error
-        mock_dynamodb.put_item.side_effect = ClientError(
-            error_response={'Error': {'Code': 'InternalServerError', 'Message': 'Internal Server Error'}},
-            operation_name='PutItem',
-        )
+        from_username = "johndoe"
+        user_map = {'alice': 2}
+        msg = "alice++ alice++ Thank you!"
 
-        # Test that an error is raised
-        with self.assertRaises(ClientError):
-            put_item_to_messages(from_username, to_username, msg, count)
+        # Call the function
+        response = put_item_to_messages(from_username, user_map, msg)
 
-
+        # Assert
+        self.assertFalse(response['ok'])
 
 if __name__ == '__main__':
     unittest.main()

@@ -16,6 +16,7 @@ class TestIsReactionMessage(unittest.TestCase):
         self.assertFalse(is_reaction_message("ただのメッセージ"))
         self.assertFalse(is_reaction_message("username+-"))
         self.assertFalse(is_reaction_message("++username"))
+        self.assertFalse(is_reaction_message("++"))
 
 if __name__ == '__main__':
     unittest.main()

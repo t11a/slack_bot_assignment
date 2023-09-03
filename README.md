@@ -28,7 +28,19 @@ The following is the manual operation.
 - Enable Function URL on AWS Console.
 - Veiry the function URL on Slack API page.
   - https://api.slack.com/events/url_verification
-
+  - To verify the Function URL, it is necessary to respond to the challenge parameter sent from Slack. Below is an example of a function for verification purposes.
+  ```
+    def lambda_handler(event, context):
+        logger.info(event)
+        
+        body = json.loads(event['body'])
+        return {
+            'statusCode': 200,
+            'body': json.dumps(
+                {'challenge': body['challenge']},
+            ),
+        }
+  ```
 
 # DynamoDB
 There are tables named `Messages` and `UserCounts`, each defined as follows:

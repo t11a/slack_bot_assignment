@@ -39,13 +39,11 @@ def lambda_handler(event, context):
     text = body['event']['text']
 
     if is_reaction_message(text):
+        # get slack user id from request body
         from_username = body['event']['user']
-        # ex)
-        # text : alice++ alice++ bob++ Thanks!
-        # response: {'alice': 2, 'bob': 1}
+
         user_map = extract_data(text)
 
-        # ex)  response: {'alice': 16, 'bob': 31}
         new_user_count_map = save_data_to_dynamodb(from_username, user_map, text)
 
         channel_id = body['event']['channel']

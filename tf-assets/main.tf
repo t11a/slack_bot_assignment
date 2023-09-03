@@ -22,6 +22,13 @@ variable "system_name" {
 variable "slack_token" {}
 variable "slack_signing_secret" {}
 
+locals {
+  dynamodb_table_names = {
+    messages    = "Messages"
+    user_counts = "UserCounts"
+  }
+}
+
 # Archive
 data "archive_file" "layer_zip" {
   type        = "zip"
@@ -117,4 +124,34 @@ POLICY
 resource "aws_iam_role_policy_attachment" "dynamodb_full_access" {
   role       = aws_iam_role.lambda_iam_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+}
+
+# DynamoDB Tables - Messages, UserCounts
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table
+resource "aws_dynamodb_table" "messages" {
+  name         = local.dynamodb_table_names.messages
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "username"
+  range_key    = "time_to_username"
+
+  attribute {
+    name = "username"
+    type = "S"
+  }
+
+  attribute {
+    name = "time_to_username"
+    type = "S"
+  }
+}
+
+resource "aws_dynamodb_table" "user_counts" {
+  name         = local.dynamodb_table_names.user_counts
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "username"
+
+  attribute {
+    name = "username"
+    type = "S"
+  }
 }

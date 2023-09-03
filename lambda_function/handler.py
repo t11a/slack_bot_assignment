@@ -46,6 +46,7 @@ def lambda_handler(event, context):
 
         new_user_count_map = save_data_to_dynamodb(from_username, user_map, text)
 
+        # get channel id from request body
         channel_id = body['event']['channel']
         text = ""
         for username, count in new_user_count_map.items():

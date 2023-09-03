@@ -1,2 +1,5 @@
 .pytest_cache/
 secret_config.py
+
+build/
+lambda/

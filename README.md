@@ -1,49 +1,32 @@
-# Directory Configuration
-```
-├── README.md
-├── lambda_function
-│   └── handler.py
-└── tests
-    ├── secret_config.py
-    ├── test_extract_data.py
-    ├── test_is_reaction_message.py
-    ├── test_post_message.py
-    ├── test_post_message_mock.py
-    └── test_verify_request.py
-```
+# System Diagram
+TBD
 
 # How to Set Up
 
-## Lambda Layer
-
-To use the Slack SDK in a Lambda function, we will create a Lambda Layer. Follow the steps below to create a zip file, and then use that file to create a new Layer.
-
-```
-mkdir python
-cd python
-pip install slack_sdk -t .
-cd ..
-zip -r layer-slack.zip python
-```
-
 ## Terraform
+AWS resources are managed by Terraform. They can be provisioned using the operations below.
 
 ```
+# create function and layer zip files
 sh build-lambda.sh
 
-cd tf-assets
+cd tf-assets/
 
 # set environment variables
 export TF_VAR_slack_token=xxxx
 export TF_VAR_slack_signing_secret=yyyy
 
+# create resources
 terraform apply
 terraform plan
+
+# reset resources
+terraform destroy
 ```
 
 The following is the manual operation.
-- Enable Function URL
-- Veiry the function URL at Slack API
+- Enable Function URL on AWS Console.
+- Veiry the function URL on Slack API page.
   - https://api.slack.com/events/url_verification
 
 

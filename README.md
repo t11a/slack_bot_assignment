@@ -44,4 +44,17 @@ Some of the tests use secret data (such as Slack Token) defined in `tests/secret
 
 
 
+# DynamoDB
+There are tables named `Messages` and `UserCounts`, each defined as follows:
 
+Messages
+- username (PK) : String
+- time_to_username (SK) : String
+- from_username: String
+- to_username : String
+- message : String
+- incr_num : Number
+
+UserCounts:
+- username (PK): String
+- total_num : Number

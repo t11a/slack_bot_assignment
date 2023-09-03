@@ -182,16 +182,6 @@ def save_data_to_dynamodb(from_username, user_map, msg):
         (dict): A mapping of updated usernames to their respective counts. 
                                     Format: {username (str): count (int)}
     """
-    # DDB Table
-    # Messages
-    #   username (PK) : String
-    #   time_to_username (SK) : String
-    #   to_username : String
-    #   message : String
-    #   incr_num : Number
-    # UserCounts
-    #   username (PK): String
-    #   total_num : Number
 
     response = put_item_to_messages(from_username, user_map, msg)
     logger.info(response)

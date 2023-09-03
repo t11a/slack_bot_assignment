@@ -20,6 +20,14 @@ SLACK_TOKEN = os.environ['SLACK_TOKEN']
 SLACK_SIGNING_SECRET = os.environ['SLACK_SIGNING_SECRET']
 
 def lambda_handler(event, context):
+    """
+    Args:
+        event (str): message posted on slack
+        context (object): https://docs.aws.amazon.com/lambda/latest/dg/python-context.html
+
+    Returns:
+        dict: status code
+    """
     
     if not verify_request(event, SLACK_SIGNING_SECRET):
         logger.error("Verify Request Error")
@@ -58,8 +66,16 @@ def lambda_handler(event, context):
 
 
 def verify_request(event, slack_signing_secret):
-    # https://api.slack.com/authentication/verifying-requests-from-slack
+    """
+    Args:
+        event (dict): http request header and body from Slack
+        slack_signing_secret (str): signing secret for you app
 
+    Returns:
+        bool: True if verification succeeds, False if verification fails.
+
+    https://api.slack.com/authentication/verifying-requests-from-slack
+    """
     request_body = event['body']
     headers = event['headers']
     timestamp = headers['x-slack-request-timestamp']
@@ -79,11 +95,23 @@ def verify_request(event, slack_signing_secret):
     else:
         return False
 
-# https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/dynamodb/client/put_item.html
+
 def put_item_to_messages(from_username, user_map, msg):
+    """
+    Args:
+        from_username (str): http request header and body from Slack
+        user_map (dict): A mapping of usernames to their respective counts. 
+                         Format: {username (str): count (int)}
+        msg (str): message posted on Slack
+
+    Returns:
+        bool: True if all operations succeed. 
+
+    https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/dynamodb/client/put_item.html
+    """
     timestamp = int(time.time())
 
-    # TODO get display name from 'from_username'
+    # get display name from 'from_username'
     display_name = get_slack_username(from_username)
 
     result = []
@@ -105,8 +133,20 @@ def put_item_to_messages(from_username, user_map, msg):
 
     return {'ok' : result.count(200) == len(user_map)}
 
-# https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/dynamodb/client/update_item.html
 def increment_count(user_map):
+    """
+    Args:
+        user_map (dict): A mapping of usernames to their respective counts. 
+                         Format: {username (str): count (int)}
+
+    Returns:
+        dict: 
+            ok (bool): True if all responses have a 200 status code, False otherwise.
+            new_user_count_map (dict): A mapping of updated usernames to their respective counts. 
+                                       Format: {username (str): count (int)}
+
+    https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/dynamodb/client/update_item.html
+    """
     result = []
     new_user_count_map = {}
     for username, count in user_map.items():
@@ -131,6 +171,17 @@ def increment_count(user_map):
     }
 
 def save_data_to_dynamodb(from_username, user_map, msg):
+    """
+    Args:
+        from_username (str): Slack user id
+        user_map (dict): A mapping of usernames to their respective counts. 
+                         Format: {username (str): count (int)}
+        msg (str): message posted on Slack
+
+    Returns:
+        (dict): A mapping of updated usernames to their respective counts. 
+                                    Format: {username (str): count (int)}
+    """
     # DDB Table
     # Messages
     #   username (PK) : String
@@ -157,12 +208,22 @@ def save_data_to_dynamodb(from_username, user_map, msg):
     return new_user_count_map
 
 def post_message(channel_id, text, username="++Bot"):
+    """
+    Args:
+        channel_id (str): Slack channel ID
+        text (str): message that will be posted to Slack
+        username (str): username of Slack bot
+
+    Returns:
+        (object): Slack API response
+    
+    https://api.slack.com/methods/chat.postMessage
+    """
     # Create a Slack client with your token
     client = WebClient(token=SLACK_TOKEN)
 
     try:
         # Call the chat.postMessage method using the WebClient
-        # https://api.slack.com/methods/chat.postMessage
         response = client.chat_postMessage(
             channel = channel_id,
             text = text,
@@ -176,12 +237,13 @@ def post_message(channel_id, text, username="++Bot"):
 
 def get_slack_username(user_id):
     """
-    https://api.slack.com/methods/users.info
     Args:
         user_id (str): slack user id
 
     Returns:
         str: display name of slack user
+
+    https://api.slack.com/methods/users.info
     """
     client = WebClient(token=SLACK_TOKEN)
 
@@ -221,11 +283,11 @@ def extract_data(text):
     Returns:
         dict: mapping of usernames to their respective frequencies of occurrence
     """
-    # 'username++' のパターンを検索
+    # search the pattern like 'username++'
     pattern = r'(\w+)\+\+'
     usernames = re.findall(pattern, text)
 
-    # 各usernameの出現回数をカウント
+    # count the occurrence frequency of each username
     user_map = {}
     for user in usernames:
         user_map[user] = 1 + user_map.get(user, 0)

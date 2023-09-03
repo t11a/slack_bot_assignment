@@ -26,6 +26,27 @@ cd ..
 zip -r layer-slack.zip python
 ```
 
+## Terraform
+
+```
+sh build-lambda.sh
+
+cd tf-assets
+
+# set environment variables
+export TF_VAR_slack_token=xxxx
+export TF_VAR_slack_signing_secret=yyyy
+
+terraform apply
+terraform plan
+```
+
+The following is the manual operation.
+- Enable Function URL
+- Veiry the function URL at Slack API
+  - https://api.slack.com/events/url_verification
+
+
 # DynamoDB
 There are tables named `Messages` and `UserCounts`, each defined as follows:
 
@@ -45,6 +66,10 @@ UserCounts:
 You can execute the test code using `pytest`. By running the `pytest` command without arguments, it will execute all test codes under the `tests/` directory.
 
 ```
+# set environment variables
+export SLACK_TOKEN=xxxx
+export SLACK_SIGNING_SECRET=yyyy
+
 cd $PROJECT_ROOT
 pytest
 ```

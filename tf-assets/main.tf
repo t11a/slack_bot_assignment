@@ -19,6 +19,9 @@ variable "system_name" {
   default = "slack_assignment"
 }
 
+variable "slack_token" {}
+variable "slack_signing_secret" {}
+
 # Archive
 data "archive_file" "layer_zip" {
   type        = "zip"
@@ -50,7 +53,14 @@ resource "aws_lambda_function" "slack_bot" {
   runtime          = "python3.11"
   role             = aws_iam_role.lambda_iam_role.arn
   source_code_hash = data.archive_file.function_zip.output_base64sha256
+  timeout          = 10
   layers           = ["${aws_lambda_layer_version.lambda_layer.arn}"]
+  environment {
+    variables = {
+      SLACK_TOKEN          = var.slack_token
+      SLACK_SIGNING_SECRET = var.slack_signing_secret
+    }
+  }
 }
 
 resource "aws_lambda_function_event_invoke_config" "slack_bot" {

@@ -26,6 +26,21 @@ cd ..
 zip -r layer-slack.zip python
 ```
 
+# DynamoDB
+There are tables named `Messages` and `UserCounts`, each defined as follows:
+
+Messages
+- username (PK) : String
+- time_to_username (SK) : String
+- from_username: String
+- to_username : String
+- message : String
+- incr_num : Number
+
+UserCounts:
+- username (PK): String
+- total_num : Number
+
 # How to Test
 You can execute the test code using `pytest`. By running the `pytest` command without arguments, it will execute all test codes under the `tests/` directory.
 
@@ -42,19 +57,3 @@ pytest tests/test_verify_request.py
 
 Some of the tests use secret data (such as Slack Token) defined in `tests/secret_config.py`. Therefore, you need to prepare various secret information in advance, referring to `secret_config.py.dummy`.
 
-
-
-# DynamoDB
-There are tables named `Messages` and `UserCounts`, each defined as follows:
-
-Messages
-- username (PK) : String
-- time_to_username (SK) : String
-- from_username: String
-- to_username : String
-- message : String
-- incr_num : Number
-
-UserCounts:
-- username (PK): String
-- total_num : Number

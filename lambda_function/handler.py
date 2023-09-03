@@ -51,6 +51,7 @@ def lambda_handler(event, context):
             'ok' : res.get('ok')
         }
     else:
+        logger.info("reaction message is not detected")
         return {
             'statusCode': 200,
         }
@@ -82,6 +83,9 @@ def verify_request(event, slack_signing_secret):
 def put_item_to_messages(from_username, user_map, msg):
     timestamp = int(time.time())
 
+    # TODO get display name from 'from_username'
+    display_name = get_slack_username(from_username)
+
     result = []
     for to_username, count in user_map.items():
         time_to_username = str(timestamp) + '#' + to_username
@@ -92,6 +96,7 @@ def put_item_to_messages(from_username, user_map, msg):
                 'username': {'S': from_username},
                 'time_to_username': {'S': time_to_username},
                 'to_username': {'S': to_username},
+                'from_username': {'S': display_name},
                 'message': {'S': msg},
                 'incr_num': {'N': str(count)}
             }
@@ -169,11 +174,11 @@ def post_message(channel_id, text, username="++Bot"):
         logger.error(f"Error posting message: {e}")
         return e.response
 
-def get_slack_username(user):
+def get_slack_username(user_id):
     """
     https://api.slack.com/methods/users.info
     Args:
-        user (str): slack user id
+        user_id (str): slack user id
 
     Returns:
         str: display name of slack user
@@ -181,7 +186,7 @@ def get_slack_username(user):
     client = WebClient(token=SLACK_TOKEN)
 
     try:
-        response = client.users_info(user)
+        response = client.users_info(user=user_id)
 
         if response["ok"]:
             # display_name
@@ -198,10 +203,24 @@ def get_slack_username(user):
         return ""
 
 def is_reaction_message(text):
+    """
+    Args:
+        text (str): message posted on slack
+
+    Returns:
+        bool: {username}++ format or not
+    """
     pattern = r'(\w+\+\+ *)+\s*.*'
     return bool(re.match(pattern, text))
 
 def extract_data(text):
+    """
+    Args:
+        text (str): message posted on slack
+
+    Returns:
+        dict: mapping of usernames to their respective frequencies of occurrence
+    """
     # 'username++' のパターンを検索
     pattern = r'(\w+)\+\+'
     usernames = re.findall(pattern, text)

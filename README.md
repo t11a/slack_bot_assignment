@@ -41,6 +41,9 @@ The following is the manual operation.
             ),
         }
   ```
+### Terraform destroy Tips
+- You need to empty the S3 bucket before running `terraform destroy`.
+- CloudWatch Logs won't be automatically deleted, so please manually delete the Log Group and Log Stream.
 
 # DynamoDB
 There are tables named `Messages` and `UserCounts`, each defined as follows:

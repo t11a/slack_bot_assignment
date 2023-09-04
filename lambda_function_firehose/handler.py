@@ -26,12 +26,13 @@ def lambda_handler(event, context):
         data['incr_num']                    = json_value["dynamodb"]["NewImage"]["incr_num"]["N"]
         data['time_to_username']            = json_value["dynamodb"]["NewImage"]["time_to_username"]["S"]
 
-        # base64.b64encode(payload.encode('utf-8')).decode('utf-8')
+        # Add line break as suffix to each record
+        record_json_with_newline = json.dumps(data) + '\n'
 
         output_record = {
             'recordId': record['recordId'],
             'result': 'Ok',
-            'data': base64.b64encode(json.dumps(data).encode('utf-8')).decode('utf-8')
+            'data': base64.b64encode(record_json_with_newline.encode('utf-8')).decode('utf-8')
         }
         output.append(output_record)
 

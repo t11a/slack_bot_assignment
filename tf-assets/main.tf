@@ -307,3 +307,136 @@ resource "aws_iam_role_policy_attachment" "firehose_att" {
   role       = aws_iam_role.firehose_role.name
   policy_arn = aws_iam_policy.firehose_policy.arn
 }
+
+# Athena and Glue Data Catalog
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/athena_workgroup
+resource "aws_athena_workgroup" "workgroup" {
+  name = "${var.system_name}_workgroup"
+
+  configuration {
+    enforce_workgroup_configuration    = true
+    publish_cloudwatch_metrics_enabled = false
+
+    engine_version {
+      selected_engine_version = "Athena engine version 3"
+    }
+    result_configuration {
+      output_location = "s3://${aws_s3_bucket.athena_query_result.bucket}/results/${var.system_name}/"
+      acl_configuration {
+        s3_acl_option = "BUCKET_OWNER_FULL_CONTROL"
+      }
+    }
+  }
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/glue_catalog_database
+resource "aws_glue_catalog_database" "slack_db" {
+  name = var.system_name
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/glue_catalog_table
+resource "aws_glue_catalog_table" "messages" {
+  name          = "messages"
+  database_name = aws_glue_catalog_database.slack_db.name
+
+  table_type = "EXTERNAL_TABLE"
+
+  parameters = {
+    "projection.enabled"        = "true"
+    "projection.year.digits"    = "4"
+    "projection.year.interval"  = "1"
+    "projection.year.type"      = "integer"
+    "projection.year.range"     = "2023,2025"
+    "projection.month.digits"   = "2"
+    "projection.month.interval" = "1"
+    "projection.month.type"     = "integer"
+    "projection.month.range"    = "1,12"
+    "projection.day.digits"     = "2"
+    "projection.day.interval"   = "1"
+    "projection.day.type"       = "integer"
+    "projection.day.range"      = "1,31"
+    "projection.hour.digits"    = "2"
+    "projection.hour.interval"  = "1"
+    "projection.hour.type"      = "integer"
+    "projection.hour.range"     = "0,23"
+    "storage.location.template" = "s3://${aws_s3_bucket.firehose_destination.bucket}/${var.system_name}/success/year=$${year}/month=$${month}/day=$${day}/hour=$${hour}/"
+
+  }
+
+  storage_descriptor {
+    location      = "s3://${aws_s3_bucket.firehose_destination.bucket}/${var.system_name}/success/"
+    input_format  = "org.apache.hadoop.mapred.TextInputFormat"
+    output_format = "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat"
+
+    ser_de_info {
+      serialization_library = "org.openx.data.jsonserde.JsonSerDe"
+    }
+
+    columns {
+      name = "eventID"
+      type = "string"
+    }
+
+    columns {
+      name = "eventName"
+      type = "string"
+    }
+
+    columns {
+      name = "ApproximateCreationDateTime"
+      type = "bigint"
+    }
+
+    columns {
+      name = "to_username"
+      type = "string"
+    }
+
+    columns {
+      name = "from_username"
+      type = "string"
+    }
+
+    columns {
+      name = "message"
+      type = "string"
+    }
+
+    columns {
+      name    = "username"
+      type    = "string"
+      comment = "Slack User ID"
+    }
+
+    columns {
+      name = "incr_num"
+      type = "int"
+    }
+
+    columns {
+      name = "time_to_username"
+      type = "string"
+    }
+  }
+
+  partition_keys {
+    name = "year"
+    type = "int"
+  }
+
+  partition_keys {
+    name = "month"
+    type = "int"
+  }
+
+  partition_keys {
+    name = "day"
+    type = "int"
+  }
+
+  partition_keys {
+    name = "hour"
+    type = "int"
+  }
+}
+

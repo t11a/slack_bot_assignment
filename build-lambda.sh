@@ -10,6 +10,7 @@ mkdir -p build/function/ build/layer/
 # copy lambda function file
 echo "copy lambda function file"
 cp -r lambda_function/ build/function/
+cp -r lambda_function_firehose/ build/function_firehose/
 
 # create lambda layer zip
 echo "create lambda layer zip"

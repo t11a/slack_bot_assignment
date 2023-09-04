@@ -24,7 +24,6 @@ def lambda_handler(event, context):
     Args:
         event (str): message posted on slack
         context (object): https://docs.aws.amazon.com/lambda/latest/dg/python-context.html
-
     Returns:
         dict: status code
     """
@@ -69,7 +68,6 @@ def verify_request(event, slack_signing_secret):
     Args:
         event (dict): http request header and body from Slack
         slack_signing_secret (str): signing secret for you app
-
     Returns:
         bool: True if verification succeeds, False if verification fails.
 
@@ -102,7 +100,6 @@ def put_item_to_messages(from_username, user_map, msg):
         user_map (dict): A mapping of usernames to their respective counts. 
                          Format: {username (str): count (int)}
         msg (str): message posted on Slack
-
     Returns:
         bool: True if all operations succeed. 
 
@@ -137,7 +134,6 @@ def increment_count(user_map):
     Args:
         user_map (dict): A mapping of usernames to their respective counts. 
                          Format: {username (str): count (int)}
-
     Returns:
         dict: 
             ok (bool): True if all responses have a 200 status code, False otherwise.
@@ -176,7 +172,6 @@ def save_data_to_dynamodb(from_username, user_map, msg):
         user_map (dict): A mapping of usernames to their respective counts. 
                          Format: {username (str): count (int)}
         msg (str): message posted on Slack
-
     Returns:
         (dict): A mapping of updated usernames to their respective counts. 
                                     Format: {username (str): count (int)}
@@ -202,7 +197,6 @@ def post_message(channel_id, text, username="++Bot"):
         channel_id (str): Slack channel ID
         text (str): message that will be posted to Slack
         username (str): username of Slack bot
-
     Returns:
         (object): Slack API response
     
@@ -228,7 +222,6 @@ def get_slack_username(user_id):
     """
     Args:
         user_id (str): slack user id
-
     Returns:
         str: display name of slack user
 
@@ -268,7 +261,6 @@ def extract_data(text):
     """
     Args:
         text (str): message posted on slack
-
     Returns:
         dict: mapping of usernames to their respective frequencies of occurrence
     """

@@ -1,5 +1,7 @@
 # System Diagram
-TBD
+![architecture](./images/arch-diagram.png)
+
+
 
 # How to Set Up
 

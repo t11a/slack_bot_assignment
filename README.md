@@ -11,7 +11,7 @@ The system is primarily composed of two main components. The first is related to
 ## Slack App
 - **(1)** Utilize Slack's *Event Subscription* to subscribe to channel messages. The bot responds to the [message.channels](https://api.slack.com/events/message.channels) event, forwarding the event to a Lambda function.
 - The Lambda function receives the Event from Slack and performs the following operations:
-    - Validates the request.
+    - Verifies the request.
     - Determines if the message contains the targeted string.
     - Calculates how much each user has been incremented.
     - **(2)** Saves the results to DynamoDB.

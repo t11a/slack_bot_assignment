@@ -1,7 +1,25 @@
+# Overview
+
+This Slack App responds to messages in channels that contain specific strings. Specifically, it detects messages that match the increment notation in programming, such as `username++`. The use case for this application is envisioned for instances where a user wants to casually express gratitude to another user.
+
+
 # System Diagram
 ![architecture](./images/arch-diagram.png)
 
+The system is primarily composed of two main components. The first is related to the operation of the Slack App, while the second serves as an analytics infrastructure for evaluating the usage of the application. Each component is described below, aligned with the numbers illustrated in the diagram.
 
+## Slack App
+- **(1)** Utilize Slack's *Event Subscription* to subscribe to channel messages. The bot responds to the [message.channels](https://api.slack.com/events/message.channels) event, forwarding the event to a Lambda function.
+- The Lambda function receives the Event from Slack and performs the following operations:
+    - Validates the request.
+    - Determines if the message contains the targeted string.
+    - Calculates how much each user has been incremented.
+    - **(2)** Saves the results to DynamoDB.
+    - Retrieves the total increment count for each user.
+    - **(3, 4)** Posts the latest increment count for each user to the channel.
+
+## Analytics
+TBD
 
 # How to Set Up
 

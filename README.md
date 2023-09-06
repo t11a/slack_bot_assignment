@@ -37,10 +37,10 @@ export TF_VAR_slack_token=xxxx
 export TF_VAR_slack_signing_secret=yyyy
 
 # create resources
-terraform apply
 terraform plan
+terraform apply
 
-# reset resources
+# clean up resources
 terraform destroy
 ```
 
@@ -100,3 +100,33 @@ pytest tests/test_verify_request.py
 
 Some of the tests use secret data (such as Slack Token) defined in `tests/secret_config.py`. Therefore, you need to prepare various secret information in advance, referring to `secret_config.py.dummy`.
 
+
+# Athena Query Samples
+Here are some examples of SQL queries.
+
+```
+-- Retrieval of all records at a specific date and time.
+SELECT *
+FROM slack_assignment.messages
+WHERE
+year = 2023
+AND
+month = 9
+AND
+day = 3
+AND
+hour = 14
+;
+```
+
+```
+-- Ranking of users receiving ++
+SELECT to_username, SUM(incr_num) AS total_incr_num
+FROM slack_assignment.messages
+WHERE
+year = 2023
+AND
+month = 9
+GROUP BY to_username
+ORDER BY total_incr_num DESC;
+```

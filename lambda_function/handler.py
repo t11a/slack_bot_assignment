@@ -105,7 +105,9 @@ def put_item_to_messages(from_username, user_map, msg):
 
     https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/dynamodb/client/put_item.html
     """
-    timestamp = int(time.time())
+    # This timestamp is a part of the primary key for DynamoDB.
+    # It's set in milliseconds to prevent duplication when messages are sent in rapid succession.
+    timestamp = int(time.time()*1000)
 
     # get display name from 'from_username'
     display_name = get_slack_username(from_username)

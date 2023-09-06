@@ -9,7 +9,7 @@ This Slack App responds to messages in channels that contain specific strings. S
 The system is primarily composed of two main components. The first is related to the operation of the Slack App, while the second serves as an analytics infrastructure for evaluating the usage of the application. Each component is described below, aligned with the numbers illustrated in the diagram.
 
 ## Slack App
-- **(1)** Utilize Slack's *Event Subscription* to subscribe to channel messages. The bot responds to the [message.channels](https://api.slack.com/events/message.channels) event, forwarding the event to a Lambda function.
+- **(1)** Utilize Slack's [Event Subscription](https://api.slack.com/apis/connections/events-api) to subscribe to channel messages. The bot responds to the [message.channels](https://api.slack.com/events/message.channels) event, forwarding the event to a Lambda function.
 - The Lambda function receives the Event from Slack and performs the following operations:
     - Verifies the request.
     - Determines if the message contains the targeted string.
@@ -18,8 +18,12 @@ The system is primarily composed of two main components. The first is related to
     - Retrieves the total increment count for each user.
     - **(3, 4)** Posts the latest increment count for each user to the channel.
 
-## Analytics
-TBD
+## Analytics Platform
+- **(5)** Stream data from DynamoDB to Kinesis Data Streams.
+- **(6)** Kinesis Data Streams writes the relayed data to Kinesis Data Firehose.
+- **(7)** Kinesis Data Firehose utilizes Lambda to transform the data into a format that can be efficiently queried using Athena.
+- **(8)** Once transformed by Lambda, the data is output to S3.
+- **(9)** With Athena, you can create a database and tables in the Glue Data Catalog, allowing you to run SQL-style queries on data stored in S3.
 
 # How to Set Up
 
@@ -45,7 +49,7 @@ terraform destroy
 ```
 
 The following is the manual operation.
-- Enable Function URL on AWS Console.
+- Enable [Function URL](https://docs.aws.amazon.com/lambda/latest/dg/lambda-urls.html) on AWS Console.
 - Veiry the function URL on Slack API page.
   - https://api.slack.com/events/url_verification
   - To verify the Function URL, it is necessary to respond to the challenge parameter sent from Slack. Below is an example of a function for verification purposes.
@@ -62,8 +66,10 @@ The following is the manual operation.
         }
   ```
 ### Terraform destroy Tips
-- You need to empty the S3 bucket before running `terraform destroy`.
-- CloudWatch Logs won't be automatically deleted, so please manually delete the Log Group and Log Stream.
+- Ensure that the S3 buckets are empty before running `terraform destroy`.
+- CloudWatch Logs won't be automatically deleted, so please manually delete the Log Groups and Log Streams.
+- If you encounter the following error, please manually delete the WorkGroup of Athena from the AWS Console and then retry `terraform destroy`.
+   - `Error: deleting Athena WorkGroup`
 
 # DynamoDB
 There are tables named `Messages` and `UserCounts`, each defined as follows:
